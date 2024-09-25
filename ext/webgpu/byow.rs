@@ -65,6 +65,10 @@ pub fn op_webgpu_surface_transfer(
   state: &mut OpState,
   surface_rid: u32,
 ) -> Result<usize, AnyError> {
+
+  let instance = state.try_borrow::<super::Instance>().ok_or_else(|| {
+    type_error("Cannot create surface outside of WebGPU context. Did you forget to call `navigator.gpu.requestAdapter()`?")
+  })?;
   
   let surface_resource = state
     .resource_table
@@ -72,22 +76,29 @@ pub fn op_webgpu_surface_transfer(
   let surface = surface_resource;
   let surface_raw_id = surface.1.into_raw();
    
-   Ok(Box::into_raw(Box::new(surface_raw_id)) as usize)
+  Ok(Box::into_raw(Box::new((instance, surface_raw_id))) as usize)
 }
 
 #[op2(fast)]
 #[smi]
 pub fn op_webgpu_surface_create_from_raw(
   state: &mut OpState,
-  surface_ptr: *const c_void,
+  #[bigint] shared_instance_ptr: usize,
 ) -> Result<ResourceId, AnyError> {
+
+
+  let (shared_instance, surface_raw_id) = unsafe { &*(shared_instance_ptr as *const (super::Instance, wgpu_core::id::RawId)) };
+
+  state.put(shared_instance.clone());
+
   let instance = state.try_borrow::<super::Instance>().ok_or_else(|| {
     type_error("Cannot create surface outside of WebGPU context. Did you forget to call `navigator.gpu.requestAdapter()`?")
   })?;
 
-  let surface_raw_id =  unsafe { *( surface_ptr as *const wgpu_core::id::RawId) };
-  let surface_id =unsafe {
-      wgpu_core::id::SurfaceId::from_raw(surface_raw_id)
+  //let surface_raw_id =  unsafe { *( surface_ptr as *const wgpu_core::id::RawId) };
+  
+  let surface_id = unsafe {
+      wgpu_core::id::SurfaceId::from_raw(*surface_raw_id)
   };
 
   let rid = state

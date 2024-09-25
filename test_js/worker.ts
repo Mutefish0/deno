@@ -1,12 +1,15 @@
 const OffscreenCanvas = (Deno as any).OffscreenCanvas;
 
-const adapter = await navigator.gpu.requestAdapter();
-const device = await adapter!.requestDevice();
 
-function initWebGPU(surface: any) {
+
+async function initWebGPU(surface: any) {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter!.requestDevice();
+
   const context = surface.getContext("webgpu");
 
   const format = navigator.gpu.getPreferredCanvasFormat();
+
   context.configure({ device, format, width: 800, height: 600 });
 
   const vertices = new Float32Array([
@@ -76,7 +79,8 @@ function initWebGPU(surface: any) {
     },
   });
 
-  const commandEncoder = device.createCommandEncoder();
+  function render() {
+    const commandEncoder = device.createCommandEncoder();
   const renderPass = commandEncoder.beginRenderPass({
     colorAttachments: [
       {
@@ -95,13 +99,25 @@ function initWebGPU(surface: any) {
 
   device.queue.submit([commandEncoder.finish()]);
 
+
   surface.present();
+  }
+
+  while (true) {
+    render();
+  }
+  
 }
 
 self.addEventListener("message", (event: any) => {
   if (event.data.type === "init") {
     const { surface } = event.data;
-    const canvas = new OffscreenCanvas(Deno.UnsafePointer.create(surface)) as Deno.UnsafeWindowSurface;
+
+    console.log("surface: ", surface);
+
+    const canvas = new OffscreenCanvas(
+      surface
+    ) as Deno.UnsafeWindowSurface;
 
     initWebGPU(canvas);
   }

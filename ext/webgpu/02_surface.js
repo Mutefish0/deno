@@ -200,8 +200,8 @@ class OffscreenCanvas {
   #ctx;
   #surfaceRid;
 
-  constructor(pointer) {
-    this.#surfaceRid = op_webgpu_surface_create_from_raw(pointer);
+  constructor(ptr) {
+    this.#surfaceRid = op_webgpu_surface_create_from_raw(ptr);
   }
 
   getContext(context) {
