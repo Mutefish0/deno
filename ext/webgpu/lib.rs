@@ -219,6 +219,8 @@ deno_core::extension!(
     surface::op_webgpu_surface_present,
     // byow
     byow::op_webgpu_surface_create,
+    byow::op_webgpu_surface_transfer,
+    byow::op_webgpu_surface_create_from_raw,
   ],
   esm = ["00_init.js", "02_surface.js"],
   lazy_loaded_esm = ["01_webgpu.js"],

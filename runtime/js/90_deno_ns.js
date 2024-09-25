@@ -312,6 +312,7 @@ denoNsUnstableById[unstableIds.net] = {
 
 denoNsUnstableById[unstableIds.webgpu] = {
   UnsafeWindowSurface: webgpuSurface.UnsafeWindowSurface,
+  OffscreenCanvas: webgpuSurface.OffscreenCanvas,
 };
 
 // denoNsUnstableById[unstableIds.workerOptions] = { __proto__: null }
@@ -331,6 +332,7 @@ const denoNsUnstable = {
   UnsafePointerView: ffi.UnsafePointerView,
   UnsafeFnPointer: ffi.UnsafeFnPointer,
   UnsafeWindowSurface: webgpuSurface.UnsafeWindowSurface,
+  OffscreenCanvas: webgpuSurface.OffscreenCanvas,
   flock: fs.flock,
   flockSync: fs.flockSync,
   funlock: fs.funlock,

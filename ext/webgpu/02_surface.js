@@ -10,15 +10,13 @@ import { primordials } from "ext:core/mod.js";
 import {
   op_webgpu_surface_configure,
   op_webgpu_surface_create,
+  op_webgpu_surface_transfer,
+  op_webgpu_surface_create_from_raw,
   op_webgpu_surface_get_current_texture,
   op_webgpu_surface_present,
 } from "ext:core/ops";
-const {
-  ObjectPrototypeIsPrototypeOf,
-  Symbol,
-  SymbolFor,
-  TypeError,
-} = primordials;
+const { ObjectPrototypeIsPrototypeOf, Symbol, SymbolFor, TypeError } =
+  primordials;
 
 import * as webidl from "ext:deno_webidl/00_webidl.js";
 import { createFilteredInspectProxy } from "ext:deno_console/01_console.js";
@@ -148,9 +146,7 @@ class GPUCanvasContext {
       createFilteredInspectProxy({
         object: this,
         evaluate: ObjectPrototypeIsPrototypeOf(GPUCanvasContextPrototype, this),
-        keys: [
-          "canvas",
-        ],
+        keys: ["canvas"],
       }),
       inspectOptions,
     );
@@ -172,9 +168,40 @@ function createCanvasContext(options) {
 class UnsafeWindowSurface {
   #ctx;
   #surfaceRid;
+  #transferred;
 
   constructor(system, win, display) {
+    this.#transferred = false;
     this.#surfaceRid = op_webgpu_surface_create(system, win, display);
+  }
+
+  getContext(context) {
+    if (context !== "webgpu") {
+      throw new TypeError("Only 'webgpu' context is supported.");
+    }
+    this.#ctx = createCanvasContext({ surfaceRid: this.#surfaceRid });
+    return this.#ctx;
+  }
+
+  present() {
+    if (this.#transferred) {
+      throw new TypeError("Cannot present a transferred surface.");
+    }
+    this.#ctx[_present]();
+  }
+
+  transferControlToOffscreen() {
+    this.#transferred = true;
+    return op_webgpu_surface_transfer(this.#surfaceRid);
+  }
+}
+
+class OffscreenCanvas {
+  #ctx;
+  #surfaceRid;
+
+  constructor(pointer) {
+    this.#surfaceRid = op_webgpu_surface_create_from_raw(pointer);
   }
 
   getContext(context) {
@@ -190,4 +217,4 @@ class UnsafeWindowSurface {
   }
 }
 
-export { GPUCanvasContext, UnsafeWindowSurface };
+export { GPUCanvasContext, OffscreenCanvas, UnsafeWindowSurface };

@@ -5,6 +5,7 @@ use deno_core::error::AnyError;
 use deno_core::op2;
 use deno_core::OpState;
 use deno_core::ResourceId;
+use wgpu_core::instance::Surface;
 use std::ffi::c_void;
 #[cfg(any(
   target_os = "linux",
@@ -14,7 +15,9 @@ use std::ffi::c_void;
 ))]
 use std::ptr::NonNull;
 
+use crate::surface;
 use crate::surface::WebGpuSurface;
+
 
 #[op2(fast)]
 #[smi]
@@ -53,6 +56,43 @@ pub fn op_webgpu_surface_create(
   let rid = state
     .resource_table
     .add(WebGpuSurface(instance.clone(), surface));
+  Ok(rid)
+}
+
+#[op2(fast)]
+#[bigint]
+pub fn op_webgpu_surface_transfer(
+  state: &mut OpState,
+  surface_rid: u32,
+) -> Result<usize, AnyError> {
+  
+  let surface_resource = state
+    .resource_table
+    .get::<WebGpuSurface>(surface_rid)?;
+  let surface = surface_resource;
+  let surface_raw_id = surface.1.into_raw();
+   
+   Ok(Box::into_raw(Box::new(surface_raw_id)) as usize)
+}
+
+#[op2(fast)]
+#[smi]
+pub fn op_webgpu_surface_create_from_raw(
+  state: &mut OpState,
+  surface_ptr: *const c_void,
+) -> Result<ResourceId, AnyError> {
+  let instance = state.try_borrow::<super::Instance>().ok_or_else(|| {
+    type_error("Cannot create surface outside of WebGPU context. Did you forget to call `navigator.gpu.requestAdapter()`?")
+  })?;
+
+  let surface_raw_id =  unsafe { *( surface_ptr as *const wgpu_core::id::RawId) };
+  let surface_id =unsafe {
+      wgpu_core::id::SurfaceId::from_raw(surface_raw_id)
+  };
+
+  let rid = state
+    .resource_table
+    .add(WebGpuSurface(instance.clone(), surface_id));
   Ok(rid)
 }
 

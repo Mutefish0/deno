@@ -1953,7 +1953,9 @@ class GPUQueue {
       prefix,
       "Argument 2",
     );
-    data = webidl.converters.BufferSource(data, prefix, "Argument 3");
+    data = webidl.converters.BufferSource(data, prefix, "Argument 3", {
+      allowShared: true,
+    });
     dataOffset = webidl.converters["GPUSize64"](
       dataOffset,
       prefix,

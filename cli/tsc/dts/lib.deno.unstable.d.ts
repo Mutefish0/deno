@@ -852,6 +852,14 @@ declare namespace Deno {
     present(): void;
   }
 
+  export class OffscreenCanvas {
+    constructor(
+      surfaceId: number,
+    );
+    getContext(context: "webgpu"): GPUCanvasContext;
+    present(): void;
+  }
+
   /** **UNSTABLE**: New API, yet to be vetted.
    *
    * These are unstable options which can be used with {@linkcode Deno.run}.

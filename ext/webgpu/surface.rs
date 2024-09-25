@@ -36,6 +36,7 @@ pub struct SurfaceConfigureArgs {
   view_formats: Vec<wgpu_types::TextureFormat>,
 }
 
+
 #[op2]
 #[serde]
 pub fn op_webgpu_surface_configure(
