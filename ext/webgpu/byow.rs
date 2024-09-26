@@ -5,7 +5,6 @@ use deno_core::error::AnyError;
 use deno_core::op2;
 use deno_core::OpState;
 use deno_core::ResourceId;
-use wgpu_core::instance::Surface;
 use std::ffi::c_void;
 #[cfg(any(
   target_os = "linux",
@@ -14,10 +13,10 @@ use std::ffi::c_void;
   target_os = "openbsd"
 ))]
 use std::ptr::NonNull;
+use wgpu_core::instance::Surface;
 
 use crate::surface;
 use crate::surface::WebGpuSurface;
-
 
 #[op2(fast)]
 #[smi]
@@ -65,18 +64,16 @@ pub fn op_webgpu_surface_transfer(
   state: &mut OpState,
   surface_rid: u32,
 ) -> Result<usize, AnyError> {
-
   let instance = state.try_borrow::<super::Instance>().ok_or_else(|| {
     type_error("Cannot create surface outside of WebGPU context. Did you forget to call `navigator.gpu.requestAdapter()`?")
   })?;
-  
-  let surface_resource = state
-    .resource_table
-    .get::<WebGpuSurface>(surface_rid)?;
+
+  let surface_resource =
+    state.resource_table.get::<WebGpuSurface>(surface_rid)?;
   let surface = surface_resource;
   let surface_raw_id = surface.1.into_raw();
-   
-  Ok(Box::into_raw(Box::new((instance, surface_raw_id))) as usize)
+
+  Ok(Box::into_raw(Box::new((instance.clone(), surface_raw_id))) as usize)
 }
 
 #[op2(fast)]
@@ -85,9 +82,9 @@ pub fn op_webgpu_surface_create_from_raw(
   state: &mut OpState,
   #[bigint] shared_instance_ptr: usize,
 ) -> Result<ResourceId, AnyError> {
-
-
-  let (shared_instance, surface_raw_id) = unsafe { &*(shared_instance_ptr as *const (super::Instance, wgpu_core::id::RawId)) };
+  let (shared_instance, surface_raw_id) = unsafe {
+    &*(shared_instance_ptr as *const (super::Instance, wgpu_core::id::RawId))
+  };
 
   state.put(shared_instance.clone());
 
@@ -96,10 +93,9 @@ pub fn op_webgpu_surface_create_from_raw(
   })?;
 
   //let surface_raw_id =  unsafe { *( surface_ptr as *const wgpu_core::id::RawId) };
-  
-  let surface_id = unsafe {
-      wgpu_core::id::SurfaceId::from_raw(*surface_raw_id)
-  };
+
+  let surface_id =
+    unsafe { wgpu_core::id::SurfaceId::from_raw(*surface_raw_id) };
 
   let rid = state
     .resource_table

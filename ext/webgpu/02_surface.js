@@ -10,10 +10,10 @@ import { primordials } from "ext:core/mod.js";
 import {
   op_webgpu_surface_configure,
   op_webgpu_surface_create,
-  op_webgpu_surface_transfer,
   op_webgpu_surface_create_from_raw,
   op_webgpu_surface_get_current_texture,
   op_webgpu_surface_present,
+  op_webgpu_surface_transfer,
 } from "ext:core/ops";
 const { ObjectPrototypeIsPrototypeOf, Symbol, SymbolFor, TypeError } =
   primordials;

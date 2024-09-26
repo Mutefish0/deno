@@ -1,7 +1,5 @@
 const OffscreenCanvas = (Deno as any).OffscreenCanvas;
 
-
-
 async function initWebGPU(surface: any) {
   const adapter = await navigator.gpu.requestAdapter();
   const device = await adapter!.requestDevice();
@@ -81,32 +79,40 @@ async function initWebGPU(surface: any) {
 
   function render() {
     const commandEncoder = device.createCommandEncoder();
-  const renderPass = commandEncoder.beginRenderPass({
-    colorAttachments: [
-      {
-        view: context.getCurrentTexture().createView(),
-        loadOp: "clear", // 需要指定 loadOp
-        clearValue: { r: 0, g: 0, b: 0, a: 1 },
-        storeOp: "store",
-      },
-    ],
-  });
+    const renderPass = commandEncoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          loadOp: "clear", // 需要指定 loadOp
+          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          storeOp: "store",
+        },
+      ],
+    });
 
-  renderPass.setPipeline(pipeline);
-  renderPass.setVertexBuffer(0, vertexBuffer);
-  renderPass.draw(3, 1, 0, 0);
-  renderPass.end();
+    renderPass.setPipeline(pipeline);
+    renderPass.setVertexBuffer(0, vertexBuffer);
+    renderPass.draw(3, 1, 0, 0);
+    renderPass.end();
 
-  device.queue.submit([commandEncoder.finish()]);
+    device.queue.submit([commandEncoder.finish()]);
 
-
-  surface.present();
+    surface.present();
   }
+
+  let count = 0;
+  let lastTime = 0;
 
   while (true) {
+    const time = performance.now();
+    count++;
+    if (time - lastTime > 1000) {
+      console.log("Render FPS: ", count);
+      count = 0;
+      lastTime = time;
+    }
     render();
   }
-  
 }
 
 self.addEventListener("message", (event: any) => {
@@ -116,7 +122,7 @@ self.addEventListener("message", (event: any) => {
     console.log("surface: ", surface);
 
     const canvas = new OffscreenCanvas(
-      surface
+      surface,
     ) as Deno.UnsafeWindowSurface;
 
     initWebGPU(canvas);
