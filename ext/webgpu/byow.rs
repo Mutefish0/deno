@@ -13,9 +13,7 @@ use std::ffi::c_void;
   target_os = "openbsd"
 ))]
 use std::ptr::NonNull;
-use wgpu_core::instance::Surface;
 
-use crate::surface;
 use crate::surface::WebGpuSurface;
 
 #[op2(fast)]
@@ -91,8 +89,6 @@ pub fn op_webgpu_surface_create_from_raw(
   let instance = state.try_borrow::<super::Instance>().ok_or_else(|| {
     type_error("Cannot create surface outside of WebGPU context. Did you forget to call `navigator.gpu.requestAdapter()`?")
   })?;
-
-  //let surface_raw_id =  unsafe { *( surface_ptr as *const wgpu_core::id::RawId) };
 
   let surface_id =
     unsafe { wgpu_core::id::SurfaceId::from_raw(*surface_raw_id) };
