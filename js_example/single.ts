@@ -15,7 +15,7 @@ const window = createWindow({
 
 const surface = window.windowSurface();
 
-initWebGPU(surface);
+const render = await initWebGPU(surface);
 
 let count = 0;
 let lastTime = 0;
@@ -27,4 +27,6 @@ mainloop((time) => {
     count = 0;
     lastTime = time;
   }
+
+  render();
 });

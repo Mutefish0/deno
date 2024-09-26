@@ -75,7 +75,19 @@ export async function initWebGPU(surface: Deno.UnsafeWindowSurface) {
     },
   });
 
+
+  let count = 0;
+  let lastTime = 0;
+
   function render() {
+    const time = performance.now();
+    count++;
+    if (time - lastTime > 1000) {
+      console.log("Render FPS: ", count);
+      count = 0;
+      lastTime = time;
+    }
+
     const commandEncoder = device.createCommandEncoder();
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [
@@ -98,17 +110,5 @@ export async function initWebGPU(surface: Deno.UnsafeWindowSurface) {
     surface.present();
   }
 
-  let count = 0;
-  let lastTime = 0;
-
-  while (true) {
-    const time = performance.now();
-    count++;
-    if (time - lastTime > 1000) {
-      console.log("Render FPS: ", count);
-      count = 0;
-      lastTime = time;
-    }
-    render();
-  }
+  return render;
 }
