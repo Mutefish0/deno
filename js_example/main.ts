@@ -1,25 +1,14 @@
-import {
-  createWindow,
-  getPrimaryMonitor,
-  mainloop,
-} from "https://deno.land/x/dwm@0.3.6/mod.ts";
+import { createWindow, mainloop } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
 const width = 800;
 const height = 600;
 
 await navigator.gpu.requestAdapter();
 
-let cs = 1;
-
-if (Deno.build.os === "windows") {
-  const monitor = getPrimaryMonitor();
-  cs = monitor.contentScale.x;
-}
-
 const window = createWindow({
   title: "test",
-  width: width * cs,
-  height: height * cs,
+  width: width,
+  height: height,
   resizable: false,
 });
 

@@ -1,6 +1,4 @@
-const OffscreenCanvas = (Deno as any).OffscreenCanvas;
-
-async function initWebGPU(surface: any) {
+export async function initWebGPU(surface: Deno.UnsafeWindowSurface) {
   const adapter = await navigator.gpu.requestAdapter();
   const device = await adapter!.requestDevice();
 
@@ -114,17 +112,3 @@ async function initWebGPU(surface: any) {
     render();
   }
 }
-
-self.addEventListener("message", (event: any) => {
-  if (event.data.type === "init") {
-    const { surface } = event.data;
-
-    console.log("surface: ", surface);
-
-    const canvas = new OffscreenCanvas(
-      surface,
-    ) as Deno.UnsafeWindowSurface;
-
-    initWebGPU(canvas);
-  }
-});
